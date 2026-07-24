@@ -49,6 +49,33 @@ class Board {
 	sf::Color getCellColor(int r, int c) {
 		return grid[r][c].color;
 	}
+
+	bool checkRowFilled(int r) {
+		int occ = true;
+		for (int i = 0; i < 10; i++) {
+			if (getCellState(r, i) == false) {
+				occ = false;
+			}
+		}
+
+		return occ;
+	}
+	bool checkRowEmpty(int r) {
+		int empty = true;
+		for (int i = 0; i < 10; i++) {
+			if (getCellState(r,i) == true) {
+				empty = false;
+			}
+		}
+		return empty;
+	}
+
+	void clearRow(int r) {
+		for (int i = 0; i < 10; i++) {
+			setCellState(r, i, false);
+			setCellColor(r, i, sf::Color::Transparent);
+		}
+	}
 };
 
 class Piece {
@@ -85,6 +112,7 @@ int main()
 	// sf::Time placeDeltaTime;
 	// float place_dt = 0.f;
 
+	std::vector<int> rowsToClear;
 
 	std::random_device rd; 
 	std::mt19937 gen(rd()); 
@@ -1172,6 +1200,28 @@ int main()
 
 		//when piece is placed, generate a new piece type
 		while (placed) {	
+
+			int lastidx = 19;
+			int nextidx = 19;
+
+			while (nextidx > -1) {
+				
+				if (board.checkRowFilled(nextidx)) {
+					nextidx -= 1;
+				} 
+				else {
+
+					for (int i  = 0; i < 10; i++) {
+						board.setCellColor(lastidx, i, board.getCellColor(nextidx,i));
+						board.setCellState(lastidx, i, board.getCellState(nextidx,i));
+					}
+
+					nextidx -= 1;
+					lastidx -= 1;
+					
+				}
+			} 
+			
 			piece.type = static_cast<pieceType>(distr(gen));
 			placed = false;
 			spawn = true;
@@ -1392,10 +1442,6 @@ int main()
 				else if (piece.type == SPIECE) {
 					piece.anchor = piece.pos[3];
 				}
-				// piece.pos[0] = sf::Vector2f((piece.pieces[0].getPosition().x - 245) / 35, (piece.pieces[0].getPosition().y - 205) / 35);
-				// piece.pos[1] = sf::Vector2f((piece.pieces[1].getPosition().x - 245) / 35, (piece.pieces[1].getPosition().y - 205) / 35);
-				// piece.pos[2] = sf::Vector2f((piece.pieces[2].getPosition().x - 245) / 35, (piece.pieces[2].getPosition().y - 205) / 35);
-				// piece.pos[3] = sf::Vector2f((piece.pieces[3].getPosition().x - 245) / 35, (piece.pieces[3].getPosition().y - 205) / 35);
 			}
 			else {
 				placing  = true;
@@ -1409,7 +1455,7 @@ int main()
 		if (placing) {
 			placeTimer += dt;
 
-			if (placeTimer >= 2) {
+			if (placeTimer >= 0.1) {
 				placing = false;
 				placed = true;
 				
@@ -1417,11 +1463,6 @@ int main()
 				board.setCellState(piece.pos[1].y, piece.pos[1].x, true);
 				board.setCellState(piece.pos[2].y, piece.pos[2].x, true);
 				board.setCellState(piece.pos[3].y, piece.pos[3].x, true);
-
-				// for (int i = 0; i < 4; i++) {
-				// 	board.setCellColor(piece.pos[i].y, piece.pos[i].x, piece.pieces[i].getFillColor());
-				// }
-				//board.setCellColor(piece.pos[0].y, piece.pos[0].x, piece.pieces[0].getFillColor());
 
 				board.setCellColor(piece.pos[0].y, piece.pos[0].x, piece.pieces[0].getFillColor());
 				board.setCellColor(piece.pos[1].y, piece.pos[1].x, piece.pieces[1].getFillColor());
@@ -1440,12 +1481,13 @@ int main()
 		} 
 		
 
-		std::cout << "position 0: (" << piece.pos[0].x << "," << piece.pos[0].y << ")\n";
-		std::cout << "position 1: (" << piece.pos[1].x << "," << piece.pos[1].y << ")\n";
-		std::cout << "position 2: (" << piece.pos[2].x << "," << piece.pos[2].y << ")\n";
-		std::cout << "position 3: (" << piece.pos[3].x << "," << piece.pos[3].y << ")\n";
-		std::cout << "valid: (" << valid << ")\n";
+		// std::cout << "position 0: (" << piece.pos[0].x << "," << piece.pos[0].y << ")\n";
+		// std::cout << "position 1: (" << piece.pos[1].x << "," << piece.pos[1].y << ")\n";
+		// std::cout << "position 2: (" << piece.pos[2].x << "," << piece.pos[2].y << ")\n";
+		// std::cout << "position 3: (" << piece.pos[3].x << "," << piece.pos[3].y << ")\n";
+		// std::cout << "valid: (" << valid << ")\n";
 		// std::cout << "placing: (" << placing << ")\n";
+		// std::cout << "placed: (" << placed << ")\n";
 		
 
 		window.display();
