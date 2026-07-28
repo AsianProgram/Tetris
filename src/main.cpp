@@ -2,6 +2,8 @@
 #include <SFML/Window/Event.hpp>
 #include <random>
 #include <iostream>
+#include <algorithm>
+using namespace std;
 
 enum pieceType {
 	SQUARE,
@@ -88,6 +90,164 @@ class Piece {
 		sf::Vector2f newPos[4];
 		sf::RectangleShape pieces[4]; 
 
+	
+		void drawPiece(Piece &p, int startX, int startY) {
+			switch (p.type) {
+				case (SQUARE):
+					//piece.pos[]
+					for (int i = 0; i < 4; i++) {
+						if (i <= 1) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f(startX+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color::Yellow);
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						} 
+						else {	
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f(startX+((i-2)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color::Yellow);
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+					
+					
+					break;
+				case (LINE):
+					for (int i = 0; i < 4; i++) {
+						p.pieces[i].setSize(sf::Vector2f(25,25));
+						p.pieces[i].setPosition(sf::Vector2f((startX-35)+(i*35), startY));
+						p.pieces[i].setFillColor(sf::Color::Cyan);
+						p.pieces[i].setOutlineColor(sf::Color::White);
+
+						//piece.pos[i] = (sf::Vector2f(350+(i*35), 205));
+						p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						
+					}
+					break;
+				case (TPIECE):
+					for (int i = 0; i < 4; i++) {
+
+						if (i == 0) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f(startX+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color::Magenta);
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						else {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX - 35)+((i-1)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color::Magenta);
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+					break;
+				case (LPIECE):
+					for (int i = 0; i < 4; i++) {
+
+						if (i == 0) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX+35)+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color(255,175,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						else {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+((i-1)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color(255,175,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+
+					break;
+				case (JPIECE):
+					for (int i = 0; i < 4; i++) {
+
+						if (i == 0) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color(0,0,255,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						else {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+((i-1)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color(0,0,255,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+					
+					break;
+				case (ZPIECE):
+					for (int i = 0; i < 4; i++) {
+
+						if (i <= 1) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color(255,0,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						else {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+((i-1)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color(255,0,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+					break;
+				case (SPIECE):
+					for (int i = 0; i < 4; i++) {
+
+						if (i <= 1) {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f(startX+(i*35), startY));
+							p.pieces[i].setFillColor(sf::Color(0,255,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						else {
+							p.pieces[i].setSize(sf::Vector2f(25,25));
+							p.pieces[i].setPosition(sf::Vector2f((startX-35)+((i-2)*35), (startY+35)));
+							p.pieces[i].setFillColor(sf::Color(0,255,0,255));
+							p.pieces[i].setOutlineColor(sf::Color::White);
+
+							p.pos[i] = sf::Vector2f((p.pieces[i].getPosition().x - 245) / 35, (p.pieces[i].getPosition().y - 205) / 35);
+						}
+						
+					}
+					break;
+				default:
+					break;
+
+			}
+			//return p;
+		}
+
 };
 
 int main()
@@ -97,6 +257,23 @@ int main()
 
 	Board board;
 	Piece piece;
+
+	Piece holdPiece;
+
+	vector<pieceType> bag = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	int pieceIndex = 0;
+
+	int spawnX = 385;
+	int spawnY = 205;
+
+	bool hold = true;
+	bool holdEmpty = true;
+	
+	//pieceType bag[7] = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	
+
+	//std:queue<pieceType> selection;
+
 
 	bool valid = true;
 	bool placing = false;
@@ -109,25 +286,41 @@ int main()
 	sf::Clock clock;
 	float placeTimer = 0.f;
 	
-	// sf::Time placeDeltaTime;
-	// float place_dt = 0.f;
 
 	std::vector<int> rowsToClear;
 
 	std::random_device rd; 
 	std::mt19937 gen(rd()); 
-    std::uniform_int_distribution<int> distr(0, 6); 
+    //std::uniform_int_distribution<int> distr(0, 6); 
+
+	std::shuffle(bag.begin(), bag.end(), gen);
+
+	std::cout << bag.at(0) << " ";
+	std::cout << bag.at(1) << " ";
+	std::cout << bag.at(2) << " ";
+	std::cout << bag.at(3) << " ";
+	std::cout << bag.at(4) << " ";
+	std::cout << bag.at(5) << " ";
+	std::cout << bag.at(6) << "\n";
 
 	sf::RenderWindow window( sf::VideoMode( { 960, 1080 } ), "Tetris!" );
 
 
 	sf::RectangleShape cell;
+	sf::RectangleShape holdCell;
+
 
 	cell.setSize(sf::Vector2f(35,35));
 	cell.setFillColor(sf::Color::Transparent);
 	cell.setOutlineColor(sf::Color::White);
 	cell.setOutlineThickness(2.f);
 
+	holdCell.setSize(sf::Vector2f(140,70));
+	holdCell.setFillColor(sf::Color::Transparent);
+	holdCell.setOutlineColor(sf::Color::White);
+	holdCell.setOutlineThickness(2.f);
+	holdCell.setPosition(sf::Vector2f(35,200));
+	
 	float fallTimer = 0.f;
 
 	while ( window.isOpen() )
@@ -141,19 +334,6 @@ int main()
 
 			if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
 				if (keyPressed->code == sf::Keyboard::Key::Left) {
-
-					// if ((((piece.pos[0].x - 35) < 245) 
-					//  || ((piece.pos[1].x - 35) < 245) 
-					//  || ((piece.pos[2].x - 35) < 245) 
-					//  || ((piece.pos[3].x - 35) < 245))
-					//  &&
-					//  board.grid[(piece.pos[0].y - 870) / 35][((piece.pos[0].x - 245) / 35)].getCellState((piece.pos[0].y - 870) / 35), (piece.pos[0].x - 245) / 35)
-					// ((board.grid[][((piece.pos[0].x - 245) / 35)].occupied)
-					// || (board.grid[][((piece.pos[1].x - 245) / 35)].occupied)
-					// || (board.grid[][((piece.pos[2].x - 245) / 35)].occupied)
-					// || (board.grid[][((piece.pos[3].x - 245) / 35)].occupied))) {
-
-					// }
 
 					valid = true;
 					for (int i = 0; i < 4; i++) {
@@ -177,26 +357,7 @@ int main()
 					}
 					else {
 					}
-					// if ((((piece.pos[0].x - 1) < 0)
-					// || ((piece.pos[1].x - 1) < 0)
-					// || ((piece.pos[2].x - 1) < 0)
-					// || ((piece.pos[3].x - 1) < 0))
-					// || (board.getCellState(piece.pos[0].y,piece.pos[0].x)
-					// || board.getCellState(piece.pos[1].y,piece.pos[1].x)
-					// || board.getCellState(piece.pos[2].y,piece.pos[2].x)
-					// || board.getCellState(piece.pos[3].y,piece.pos[3].x)))
-					// {
 
-					// }
-					// else {
-					// 	piece.pieces[0].move(sf::Vector2f(-35.f, 0.f));
-					// 	piece.pieces[1].move(sf::Vector2f(-35.f, 0.f));
-					// 	piece.pieces[2].move(sf::Vector2f(-35.f, 0.f));
-					// 	piece.pieces[3].move(sf::Vector2f(-35.f, 0.f));
-					// }
-
-					
-					
 				}
 
 				if (keyPressed->code == sf::Keyboard::Key::Right) {
@@ -225,23 +386,6 @@ int main()
 					else {
 					}
 
-					// if ((((piece.pos[0].x + 1) > 9)
-					// || ((piece.pos[1].x + 1) > 9)
-					// || ((piece.pos[2].x + 1) > 9)
-					// || ((piece.pos[3].x + 1) > 9))
-					// || (board.getCellState(piece.pos[0].y,piece.pos[0].x)
-					// || board.getCellState(piece.pos[1].y,piece.pos[1].x)
-					// || board.getCellState(piece.pos[2].y,piece.pos[2].x)
-					// || board.getCellState(piece.pos[3].y,piece.pos[3].x)))
-					// {
-
-					// }
-					// else {
-						// piece.pieces[0].move(sf::Vector2f(35.f, 0.f));
-						// piece.pieces[1].move(sf::Vector2f(35.f, 0.f));
-						// piece.pieces[2].move(sf::Vector2f(35.f, 0.f));
-						// piece.pieces[3].move(sf::Vector2f(35.f, 0.f));
-					// }
 				}		
 				if (keyPressed->code == sf::Keyboard::Key::Down) {
 
@@ -269,23 +413,7 @@ int main()
 					else {
 						placing = true;
 					}
-					// if ((((piece.pos[0].y + 1) > 19)
-					// || ((piece.pos[1].y + 1) > 19)
-					// || ((piece.pos[2].y + 1) > 19)
-					// || ((piece.pos[3].y + 1) > 19))
-					// || (board.getCellState(piece.pos[0].y,piece.pos[0].x) 
-					// || board.getCellState(piece.pos[1].y,piece.pos[1].x)
-					// || board.getCellState(piece.pos[2].y,piece.pos[2].x)
-					// || board.getCellState(piece.pos[3].y,piece.pos[3].x)))
-					// {
-
-					// }
-					// else {
-					// 	piece.pieces[0].move(sf::Vector2f(0.f, 35.f));
-					// 	piece.pieces[1].move(sf::Vector2f(0.f, 35.f));
-					// 	piece.pieces[2].move(sf::Vector2f(0.f, 35.f));
-					// 	piece.pieces[3].move(sf::Vector2f(0.f, 35.f));
-					// }
+			
 				}
 				if (keyPressed->code == sf::Keyboard::Key::Up) {
 					//rotate
@@ -441,8 +569,6 @@ int main()
 								}
 							}
 
-
-							
 							break;
 						case (TPIECE):
 
@@ -1170,6 +1296,143 @@ int main()
 
 					}
 				}
+				if (keyPressed->code == sf::Keyboard::Key::Space) {
+					
+					//work on bottom to top appraoch later
+					// int bottom = 19;
+
+					// bool found = false;
+				
+					// while (!found && (bottom > -1)) {
+					// 	// piece.pos[0]
+					// 	// piece.pos[1]
+					// 	// piece.pos[2]
+					// 	// piece.pos[3]
+
+					// 	// if (!found) {
+
+					// 	// }
+					// 	// for (int i = 0; i < 4; i++) {
+					// 	// 	if (board.getCellState(bottom, piece.pos[i].x)) {
+					// 	// 		valid = false;
+					// 	// 	}
+					// 	// }
+
+						
+
+					// 	if (!(board.getCellState(bottom, piece.pos[0].x)) 
+					// 	&& !(board.getCellState(bottom, piece.pos[1].x)) 
+					// 	&& !(board.getCellState(bottom, piece.pos[2].x)) 
+					// 	&& !(board.getCellState(bottom, piece.pos[3].x)))
+					// 	{
+					// 		found = true;
+					// 	}
+					// 	else {
+					// 		bottom -= 1;
+					// 	}
+					// 	//(piece.pos[0].x)
+					// }
+
+
+					//top to bottom approach
+					
+					valid = true;
+
+					int offset = 1;
+					
+					while (valid) {
+						for (int i = 0; i < 4; i++) {
+
+							if (((piece.pos[i].y + offset) > 19)) {
+								valid = false;
+								break;
+							}
+							else if (board.getCellState(piece.pos[i].y + offset,piece.pos[i].x)) {
+								valid = false;
+								break;
+							}
+						}
+
+						offset++;
+					}
+					offset -= 2;
+					
+					piece.pieces[0].move(sf::Vector2f(0.f, (35.f*offset)));
+					piece.pieces[1].move(sf::Vector2f(0.f, (35.f*offset)));
+					piece.pieces[2].move(sf::Vector2f(0.f, (35.f*offset)));
+					piece.pieces[3].move(sf::Vector2f(0.f, (35.f*offset)));
+					placing = false;
+					// placing = false;
+					// placeTimer = 0;
+					
+
+					
+					// if (valid) {
+					// 	piece.pieces[0].move(sf::Vector2f(0.f, 35.f));
+					// 	piece.pieces[1].move(sf::Vector2f(0.f, 35.f));
+					// 	piece.pieces[2].move(sf::Vector2f(0.f, 35.f));
+					// 	piece.pieces[3].move(sf::Vector2f(0.f, 35.f));
+					// 	placing = false;
+					// 	placeTimer = 0;
+
+					// }
+					// else {
+					// 	placing = true;
+					// }
+				}
+				if (keyPressed->code == sf::Keyboard::Key::C) {
+					// holdCount %= 2;
+					// holdCount++;
+					// if (holdCount == 1)
+
+					//if press c for first time, turn to 0, 
+
+					if (hold) {
+
+						if (holdEmpty) {
+							holdEmpty = false;
+							
+							hold = false;
+							holdPiece = piece;
+							holdPiece.drawPiece(holdPiece, 70, 205);
+							placed = true;
+							// pieceIndex++;
+							// spawn = true;
+							
+							
+							
+
+						}
+						else {
+							hold = false;
+
+							Piece temp = holdPiece;
+
+							holdPiece = piece;
+							holdPiece.drawPiece(holdPiece, 70, 205);
+
+							piece.pieces[0] = temp.pieces[0];
+							piece.pieces[1] = temp.pieces[1];
+							piece.pieces[2] = temp.pieces[2];
+							piece.pieces[3] = temp.pieces[3];
+							piece.anchor = temp.anchor;
+							piece.type = temp.type;
+
+							spawn = true;
+
+
+
+
+							//swap pieces, grab the held one, grab the current piece
+
+							//grab held one store in temp
+							//grab current piece set to held
+
+							//set temp to piece
+						
+						}
+					}
+				}
 
 
 				piece.pos[0] = sf::Vector2f((piece.pieces[0].getPosition().x - 245) / 35, (piece.pieces[0].getPosition().y - 205) / 35);
@@ -1222,170 +1485,190 @@ int main()
 				}
 			} 
 			
-			piece.type = static_cast<pieceType>(distr(gen));
+			//piece.type = static_cast<pieceType>(distr(gen));
+
+			//if not at end of bag, grab piece and increment index
+			if (pieceIndex < 7) {
+				piece.type = bag.at(pieceIndex++);
+			}
+			else {	//end of bag, reset index, and reshuffle bag
+				pieceIndex = 0;
+				shuffle(bag.begin(), bag.end(), gen);
+
+				std::cout << bag.at(0) << " ";
+				std::cout << bag.at(1) << " ";
+				std::cout << bag.at(2) << " ";
+				std::cout << bag.at(3) << " ";
+				std::cout << bag.at(4) << " ";
+				std::cout << bag.at(5) << " ";
+				std::cout << bag.at(6) << "\n";
+				piece.type = bag.at(pieceIndex++);
+			}
+
 			placed = false;
 			spawn = true;
 		}
 
 		//creation and swpaning of new piece
 		if (spawn) {
+			hold = true;
 			spawn = false;
 			piece.rotation = 0;
-			switch (piece.type) {
-				case (SQUARE):
-					//piece.pos[]
-					for (int i = 0; i < 4; i++) {
-						if (i <= 1) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color::Yellow);
-							piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							//piece.pos[i] = (sf::Vector2f(385+(i*35), 205));
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						} 
-						else {	
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(385+((i-2)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color::Yellow);
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			piece.drawPiece(piece, 385, 205);
+			// switch (piece.type) {
+			// 	case (SQUARE):
+			// 		//piece.pos[]
+			// 		for (int i = 0; i < 4; i++) {
+			// 			if (i <= 1) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color::Yellow);
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							//piece.pos[i] = (sf::Vector2f(385+((i-2)*35), 240));
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			} 
+			// 			else {	
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(385+((i-2)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color::Yellow);
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
+
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
+			// 		}
 					
 					
-					break;
-				case (LINE):
-					for (int i = 0; i < 4; i++) {
-						piece.pieces[i].setSize(sf::Vector2f(25,25));
-						piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
-						piece.pieces[i].setFillColor(sf::Color::Cyan);
-						piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 		break;
+			// 	case (LINE):
+			// 		for (int i = 0; i < 4; i++) {
+			// 			piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 			piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
+			// 			piece.pieces[i].setFillColor(sf::Color::Cyan);
+			// 			piece.pieces[i].setOutlineColor(sf::Color::White);
 
-						//piece.pos[i] = (sf::Vector2f(350+(i*35), 205));
-						piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			//piece.pos[i] = (sf::Vector2f(350+(i*35), 205));
+			// 			piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
 						
-					}
-					break;
-				case (TPIECE):
-					for (int i = 0; i < 4; i++) {
+			// 		}
+			// 		break;
+			// 	case (TPIECE):
+			// 		for (int i = 0; i < 4; i++) {
 
-						if (i == 0) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color::Magenta);
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 			if (i == 0) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color::Magenta);
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
-						else {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color::Magenta);
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
+			// 			else {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color::Magenta);
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
-					break;
-				case (LPIECE):
-					for (int i = 0; i < 4; i++) {
+			// 		}
+			// 		break;
+			// 	case (LPIECE):
+			// 		for (int i = 0; i < 4; i++) {
 
-						if (i == 0) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(420+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color(255,175,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 			if (i == 0) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(420+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color(255,175,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
-						else {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color(255,175,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
+			// 			else {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color(255,175,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
+			// 		}
 
-					break;
-				case (JPIECE):
-					for (int i = 0; i < 4; i++) {
+			// 		break;
+			// 	case (JPIECE):
+			// 		for (int i = 0; i < 4; i++) {
 
-						if (i == 0) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color(0,0,255,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 			if (i == 0) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color(0,0,255,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
-						else {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color(0,0,255,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
+			// 			else {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color(0,0,255,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
+			// 		}
 					
-					break;
-				case (ZPIECE):
-					for (int i = 0; i < 4; i++) {
+			// 		break;
+			// 	case (ZPIECE):
+			// 		for (int i = 0; i < 4; i++) {
 
-						if (i <= 1) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color(255,0,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 			if (i <= 1) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color(255,0,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
-						else {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color(255,0,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
+			// 			else {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+((i-1)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color(255,0,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
-					break;
-				case (SPIECE):
-					for (int i = 0; i < 4; i++) {
+			// 		}
+			// 		break;
+			// 	case (SPIECE):
+			// 		for (int i = 0; i < 4; i++) {
 
-						if (i <= 1) {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
-							piece.pieces[i].setFillColor(sf::Color(0,255,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 			if (i <= 1) {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(385+(i*35), 205));
+			// 				piece.pieces[i].setFillColor(sf::Color(0,255,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
-						else {
-							piece.pieces[i].setSize(sf::Vector2f(25,25));
-							piece.pieces[i].setPosition(sf::Vector2f(350+((i-2)*35), 240));
-							piece.pieces[i].setFillColor(sf::Color(0,255,0,255));
-							piece.pieces[i].setOutlineColor(sf::Color::White);
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
+			// 			else {
+			// 				piece.pieces[i].setSize(sf::Vector2f(25,25));
+			// 				piece.pieces[i].setPosition(sf::Vector2f(350+((i-2)*35), 240));
+			// 				piece.pieces[i].setFillColor(sf::Color(0,255,0,255));
+			// 				piece.pieces[i].setOutlineColor(sf::Color::White);
 
-							piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
-						}
+			// 				piece.pos[i] = sf::Vector2f((piece.pieces[i].getPosition().x - 245) / 35, (piece.pieces[i].getPosition().y - 205) / 35);
+			// 			}
 						
-					}
-					break;
-				default:
-					break;
+			// 		}
+			// 		break;
+			// 	default:
+			// 		break;
 
-			}
+			// }
 
 
 		}
@@ -1404,6 +1687,10 @@ int main()
 				window.draw(cell);
 			}
 		}
+
+		window.draw(holdCell);
+
+
 
 
 
@@ -1475,7 +1762,9 @@ int main()
 			}
 		}
 
-
+		for (int i = 0; i < 4; i++) {
+			window.draw(holdPiece.pieces[i]);
+		} 
 		for (int i = 0; i < 4; i++) {
 			window.draw(piece.pieces[i]);
 		} 
@@ -1489,7 +1778,16 @@ int main()
 		// std::cout << "placing: (" << placing << ")\n";
 		// std::cout << "placed: (" << placed << ")\n";
 		
+		// std::cout << bag.at(0) << " ";
+		// std::cout << bag.at(1) << " ";
+		// std::cout << bag.at(2) << " ";
+		// std::cout << bag.at(3) << " ";
+		// std::cout << bag.at(4) << " ";
+		// std::cout << bag.at(5) << " ";
+		// std::cout << bag.at(6) << "\n";
 
+		//std::cout << "piece selected: " << bag.at(pieceIndex) << "\n";
+		
 		window.display();
 	}
 }
