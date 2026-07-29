@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
 #include <random>
+#include <queue>
 #include <iostream>
 #include <algorithm>
 using namespace std;
@@ -90,72 +91,56 @@ class Piece {
 		sf::Vector2f newPos[4];
 		sf::RectangleShape pieces[4]; 
 
-		pieceType peekPiece(int &index, vector<pieceType> &b1, vector<pieceType> &b2, bool &first, bool &second) {
+		pieceType peekPiece(queue<pieceType> &q) {
 			constexpr int bagSize = 7;
-			Piece p;
+			pieceType p = q.front();
+			q.pop();
+			return p;
+			
 
 			//if in first bag, grab the piece if index < bagSize, otherwise shuffle  
-			if (first) {
-				if (index >= bagSize) {
-					index = 0;
-					first = false;
-					second = true;
-				}
+			// if (first) {
+			// 	if (index >= bagSize) {
+			// 		index = 0;
+			// 		first = false;
+			// 		second = true;
+			// 	}
 
-				if (first) {
-					p.type = b1.at(index % bagSize);
-					++index;
-					return p.type;
-				}
-			}
+			// 	if (first) {
+			// 		p.type = b1.at(index % bagSize);
+			// 		++index;
+			// 		return p.type;
+			// 	}
+			// }
 
-			if (second) {
-				if (index >= bagSize) {
-					index = 0;
-					first = true;
-					second = false;
-				}
+			// if (second) {
+			// 	if (index >= bagSize) {
+			// 		index = 0;
+			// 		first = true;
+			// 		second = false;
+			// 	}
 
-				p.type = b2.at(index % bagSize);
-				++index;
-			}
-			return p.type;
+			// 	p.type = b2.at(index % bagSize);
+			// 	++index;
+			// }
+			// return p.type;
 		}
 
 		//function to get piece from which bag
-		pieceType requestPiece(int &index, vector<pieceType> &b1, vector<pieceType> &b2, bool &first, bool &second, std::mt19937 &g) {
+		pieceType requestPiece(int &index, vector<pieceType> &b1, queue<pieceType> &q, std::mt19937 &g) {
 			constexpr int bagSize = 7;
-			Piece p;
+			//Piece p;
 
-			
-			//if in first bag, grab the piece if index < bagSize, otherwise shuffle  
-			if (first) {
-				if (index >= bagSize) {
-					index = 0;
-					first = false;
-					second = true;
-					shuffle(b2.begin(), b2.end(), g);
-				}
+			if (q.size() < 4) {
+				shuffle(b1.begin(), b1.end(), g);
 
-				if (first) {
-					p.type = b1.at(index % bagSize);
-					++index;
-					return p.type;
+				for (int i = 0; i < bagSize; i++) {
+					q.push(b1.at(i));
 				}
 			}
-
-			if (second) {
-				if (index >= bagSize) {
-					index = 0;
-					first = true;
-					second = false;
-					shuffle(b1.begin(), b1.end(), g);
-				}
-
-				p.type = b2.at(index % bagSize);
-				++index;
-			}
-			return p.type;
+			pieceType p = q.front();
+			q.pop();
+			return p;
 		}
 	
 		void drawPiece(Piece &p, int startX, int startY) {
@@ -327,8 +312,10 @@ int main()
 
 	Piece holdPiece;
 
-	vector<pieceType> bag1 = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
-	vector<pieceType> bag2 = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	vector<pieceType> bag = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	//vector<pieceType> bag2 = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+
+	queue<pieceType> piecesQueue;
 	int pieceIndex = 0;
 
 	//pieceType nextPieces[3];
@@ -339,20 +326,13 @@ int main()
 
 	bool hold = true;
 	bool holdEmpty = true;
+	bool allowMovement = true;
 
 
 	bool valid = true;
 	bool placing = false;
 	bool placed = true;
 	bool spawn = true;
-
-	bool firstBag = true;
-	bool secondBag = false;
-
-	bool previewFirst;
-	bool previewSecond;
-
-	int previewIndex;
 
 	r = board.getNumRows();
 	c = board.getNumColumns();
@@ -367,24 +347,22 @@ int main()
 	std::mt19937 gen(rd()); 
     //std::uniform_int_distribution<int> distr(0, 6); 
 
-	// std::shuffle(bag1.begin(), bag1.end(), gen);
-	// std::shuffle(bag2.begin(), bag2.end(), gen);
+	std::shuffle(bag.begin(), bag.end(), gen);
 
-	std::cout << bag1.at(0) << " ";
-	std::cout << bag1.at(1) << " ";
-	std::cout << bag1.at(2) << " ";
-	std::cout << bag1.at(3) << " ";
-	std::cout << bag1.at(4) << " ";
-	std::cout << bag1.at(5) << " ";
-	std::cout << bag1.at(6) << "\n";
+	for (int i = 0; i < 7; i++) {
+		piecesQueue.push(bag.at(i));
+	}
 
-	// std::cout << bag1.at(0) << " ";
-	// std::cout << bag1.at(1) << " ";
-	// std::cout << bag1.at(2) << " ";
-	// std::cout << bag1.at(3) << " ";
-	// std::cout << bag1.at(4) << " ";
-	// std::cout << bag1.at(5) << " ";
-	// std::cout << bag1.at(6) << "\n";
+	//std::shuffle(bag2.begin(), bag2.end(), gen);
+
+	std::cout << bag.at(0) << " ";
+	std::cout << bag.at(1) << " ";
+	std::cout << bag.at(2) << " ";
+	std::cout << bag.at(3) << " ";
+	std::cout << bag.at(4) << " ";
+	std::cout << bag.at(5) << " ";
+	std::cout << bag.at(6) << "\n";
+
 
 	sf::RenderWindow window( sf::VideoMode( { 960, 1080 } ), "Tetris!" );
 
@@ -425,57 +403,55 @@ int main()
 			if (const auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
 				if (keyPressed->code == sf::Keyboard::Key::Left) {
 
-					valid = true;
-					for (int i = 0; i < 4; i++) {
+					if (allowMovement) {
+						valid = true;
+						for (int i = 0; i < 4; i++) {
 
-						if (((piece.pos[i].x - 1) < 0)) {
-							valid = false;
-							break;
+							if (((piece.pos[i].x - 1) < 0)) {
+								valid = false;
+								break;
+							}
+							else if (board.getCellState(piece.pos[i].y,piece.pos[i].x - 1)) {
+								valid = false;
+								break;
+							}
 						}
-						else if (board.getCellState(piece.pos[i].y,piece.pos[i].x - 1)) {
-							valid = false;
-							break;
+						if (valid) {
+							piece.pieces[0].move(sf::Vector2f(-35.f, 0.f));
+							piece.pieces[1].move(sf::Vector2f(-35.f, 0.f));
+							piece.pieces[2].move(sf::Vector2f(-35.f, 0.f));
+							piece.pieces[3].move(sf::Vector2f(-35.f, 0.f));
+							placing = false;
+							placeTimer = 0;
 						}
-					}
-					if (valid) {
-						piece.pieces[0].move(sf::Vector2f(-35.f, 0.f));
-						piece.pieces[1].move(sf::Vector2f(-35.f, 0.f));
-						piece.pieces[2].move(sf::Vector2f(-35.f, 0.f));
-						piece.pieces[3].move(sf::Vector2f(-35.f, 0.f));
-						placing = false;
-						placeTimer = 0;
-					}
-					else {
 					}
 
 				}
 
 				if (keyPressed->code == sf::Keyboard::Key::Right) {
+					if (allowMovement) {
+						valid = true;
+						for (int i = 0; i < 4; i++) {
 
-					valid = true;
-					for (int i = 0; i < 4; i++) {
-
-						if (((piece.pos[i].x + 1) > 9)) {
-							valid = false;
-							break;
+							if (((piece.pos[i].x + 1) > 9)) {
+								valid = false;
+								break;
+							}
+							else if (board.getCellState(piece.pos[i].y,piece.pos[i].x + 1)) {
+								valid = false;
+								break;
+							}
 						}
-						else if (board.getCellState(piece.pos[i].y,piece.pos[i].x + 1)) {
-							valid = false;
-							break;
+						if (valid) {
+							piece.pieces[0].move(sf::Vector2f(35.f, 0.f));
+							piece.pieces[1].move(sf::Vector2f(35.f, 0.f));
+							piece.pieces[2].move(sf::Vector2f(35.f, 0.f));
+							piece.pieces[3].move(sf::Vector2f(35.f, 0.f));
+							placing = false;
+							placeTimer = 0;
+
 						}
 					}
-					if (valid) {
-						piece.pieces[0].move(sf::Vector2f(35.f, 0.f));
-						piece.pieces[1].move(sf::Vector2f(35.f, 0.f));
-						piece.pieces[2].move(sf::Vector2f(35.f, 0.f));
-						piece.pieces[3].move(sf::Vector2f(35.f, 0.f));
-						placing = false;
-						placeTimer = 0;
-
-					}
-					else {
-					}
-
 				}		
 				if (keyPressed->code == sf::Keyboard::Key::Down) {
 
@@ -508,882 +484,883 @@ int main()
 				if (keyPressed->code == sf::Keyboard::Key::Up) {
 					//rotate
 
-					int newX1, newX2, newX4;
-					int newY1, newY2, newY4;
-					
-
-					switch (piece.type) {
-						case (SQUARE):
+					if (allowMovement) {
+						int newX1, newX2, newX4;
+						int newY1, newY2, newY4;
 						
+
+						switch (piece.type) {
+							case (SQUARE):
 							
-							
-							break;
-						case (LINE):
+								
+								
+								break;
+							case (LINE):
+								if (piece.rotation == 0) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(70.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+									
+
+								}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(70.f, 70.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-70.f, 70.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-70.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								break;
+							case (TPIECE):
+
+								if (piece.rotation == 0) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+									
+
+								}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,-1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,-1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+
+								
+								break;
+							case (LPIECE):
+								if (piece.rotation == 0) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(0.f, 70.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+									
+
+								}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-70.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								break;
+							case (JPIECE):
 							if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
 
-								valid = true;
+									valid = true;
 
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
 
-								if (valid) {
+									if (valid) {
 
-									piece.pieces[0].move(sf::Vector2f(70.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
 
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
 									
 
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
+								}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(0.f, 70.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-70.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								
+								
+								break;
+							case (ZPIECE):
+								if (piece.rotation == 0) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+									
+
+								}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-35.f, 70.f));
+										piece.pieces[1].move(sf::Vector2f(0.f, 35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-2,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(-35.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(-70.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
+								}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
+									piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+
+									valid = true;
+
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
+										valid = false;
+									}
+
+									if (valid) {
+
+										piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
+										piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[3] = piece.newPos[3];
+										
+
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
+
 								}
 								
+								break;
+							case (SPIECE):
+								if (piece.rotation == 0) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,2);
+									piece.newPos[2] = piece.pos[2] + sf::Vector2f(1,-1);
 
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+									valid = true;
 
-								valid = true;
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
+										valid = false;
+									}
 
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
+									if (valid) {
 
-								if (valid) {
+										piece.pieces[0].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[1].move(sf::Vector2f(0.f, 70.f));
+										piece.pieces[2].move(sf::Vector2f(35.f, -35.f));
+										piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
 
-									piece.pieces[0].move(sf::Vector2f(70.f, 70.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[2] = piece.newPos[2];
+										
 
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
 									
 
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
 								}
-							}
+								else if (piece.rotation == 1) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,1);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(-2,0);
+									piece.newPos[2] = piece.pos[2] + sf::Vector2f(1,1);
 
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
+									valid = true;
 
-								valid = true;
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
+										valid = false;
+									}
 
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
+									if (valid) {
 
-								if (valid) {
+										piece.pieces[0].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[1].move(sf::Vector2f(-70.f, 0.f));
+										piece.pieces[2].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
 
-									piece.pieces[0].move(sf::Vector2f(-70.f, 70.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[2] = piece.newPos[2];
+										
 
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
 									
 
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
 								}
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
+								else if (piece.rotation == 2) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,-2);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,-1);
+									piece.newPos[2] = piece.pos[2] + sf::Vector2f(-1,1);
 
-								valid = true;
+									valid = true;
 
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
+										valid = false;
+									}
 
-								if (valid) {
+									if (valid) {
 
-									piece.pieces[0].move(sf::Vector2f(-70.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
+										piece.pieces[0].move(sf::Vector2f(-35.f, -70.f));
+										piece.pieces[1].move(sf::Vector2f(0.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(-35.f, 35.f));
+										piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
 
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[2] = piece.newPos[2];
+										
+
+										piece.rotation += 1;
+										placing = false;
+										placeTimer = 0;
+									}
 									
 
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
 								}
-							}
+								else if (piece.rotation == 3) {
+									piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,0);
+									piece.newPos[1] = piece.pos[1] + sf::Vector2f(2,-1);
+									piece.newPos[2] = piece.pos[2] + sf::Vector2f(-1,-1);
 
-							break;
-						case (TPIECE):
+									valid = true;
 
-							if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
+									if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
+										valid = false;
+									}
+									else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
+										valid = false;
+									}
+									else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
+										valid = false;
+									}
 
-								valid = true;
+									if (valid) {
 
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
+										piece.pieces[0].move(sf::Vector2f(35.f, 0.f));
+										piece.pieces[1].move(sf::Vector2f(70.f, -35.f));
+										piece.pieces[2].move(sf::Vector2f(-35.f, -35.f));
+										piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
 
-								if (valid) {
+										piece.pos[0] = piece.newPos[0];
+										piece.pos[1] = piece.newPos[1];
+										piece.pos[2] = piece.newPos[2];
+										
 
-									piece.pieces[0].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
+										piece.rotation = 0;
+										placing = false;
+										placeTimer = 0;
+									}
 									
 
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
 								}
 								
-
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,-1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,-1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-
-							
-							break;
-						case (LPIECE):
-							if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(0.f, 70.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-70.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							break;
-						case (JPIECE):
-						if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(0.f, 70.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-2,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-70.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							
-							
-							break;
-						case (ZPIECE):
-							if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(2,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(70.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(-1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, 70.f));
-									piece.pieces[1].move(sf::Vector2f(0.f, 35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(-35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-2,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(-70.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, -35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(0,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(1,-1);
-								piece.newPos[3] = piece.pos[3] + sf::Vector2f(1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[3].x < 0) || (piece.newPos[3].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[3].y < 0) || (piece.newPos[3].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[3].y, piece.newPos[3].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(0.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(0.f, 0.f));
-									piece.pieces[3].move(sf::Vector2f(35.f, 35.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[3] = piece.newPos[3];
-									
-
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
-								}
-
-							}
-							
-							break;
-						case (SPIECE):
-							if (piece.rotation == 0) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,2);
-								piece.newPos[2] = piece.pos[2] + sf::Vector2f(1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[1].move(sf::Vector2f(0.f, 70.f));
-									piece.pieces[2].move(sf::Vector2f(35.f, -35.f));
-									piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[2] = piece.newPos[2];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 1) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,1);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(-2,0);
-								piece.newPos[2] = piece.pos[2] + sf::Vector2f(1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[1].move(sf::Vector2f(-70.f, 0.f));
-									piece.pieces[2].move(sf::Vector2f(35.f, 35.f));
-									piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[2] = piece.newPos[2];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 2) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(-1,-2);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(0,-1);
-								piece.newPos[2] = piece.pos[2] + sf::Vector2f(-1,1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(-35.f, -70.f));
-									piece.pieces[1].move(sf::Vector2f(0.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(-35.f, 35.f));
-									piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[2] = piece.newPos[2];
-									
-
-									piece.rotation += 1;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							else if (piece.rotation == 3) {
-								piece.newPos[0] = piece.pos[0] + sf::Vector2f(1,0);
-								piece.newPos[1] = piece.pos[1] + sf::Vector2f(2,-1);
-								piece.newPos[2] = piece.pos[2] + sf::Vector2f(-1,-1);
-
-								valid = true;
-
-								if ((piece.newPos[0].x < 0) || (piece.newPos[0].x > 9) || (piece.newPos[1].x < 0) || (piece.newPos[1].x > 9) || (piece.newPos[2].x < 0) || (piece.newPos[2].x > 9)) {
-									valid = false;
-								}
-								else if ((piece.newPos[0].y < 0) || (piece.newPos[0].y > 19) || (piece.newPos[1].y < 0) || (piece.newPos[1].y > 19) || (piece.newPos[2].y < 0) || (piece.newPos[2].y > 19)) {
-									valid = false;
-								}
-								else if (board.getCellState(piece.newPos[0].y, piece.newPos[0].x) || board.getCellState(piece.newPos[1].y, piece.newPos[1].x) || board.getCellState(piece.newPos[2].y, piece.newPos[2].x)) {
-									valid = false;
-								}
-
-								if (valid) {
-
-									piece.pieces[0].move(sf::Vector2f(35.f, 0.f));
-									piece.pieces[1].move(sf::Vector2f(70.f, -35.f));
-									piece.pieces[2].move(sf::Vector2f(-35.f, -35.f));
-									piece.pieces[3].move(sf::Vector2f(0.f, 0.f));
-
-									piece.pos[0] = piece.newPos[0];
-									piece.pos[1] = piece.newPos[1];
-									piece.pos[2] = piece.newPos[2];
-									
-
-									piece.rotation = 0;
-									placing = false;
-									placeTimer = 0;
-								}
-								
-
-							}
-							
-							break;
-						default:
-							break;
-
+								break;
+							default:
+								break;
+						}
 					}
 				}
 				if (keyPressed->code == sf::Keyboard::Key::Space) {
@@ -1452,6 +1429,8 @@ int main()
 					piece.pieces[2].move(sf::Vector2f(0.f, (35.f*offset)));
 					piece.pieces[3].move(sf::Vector2f(0.f, (35.f*offset)));
 					placing = false;
+					allowMovement = false;
+					//placed = true;
 
 				}
 				if (keyPressed->code == sf::Keyboard::Key::C) {
@@ -1468,7 +1447,7 @@ int main()
 
 							//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
 							// std::cout << "hold before: " << pieceIndex << "\n";
-							pieceType next = piece.requestPiece(pieceIndex, bag1, bag2, firstBag, secondBag, gen);
+							pieceType next = piece.requestPiece(pieceIndex, bag, piecesQueue, gen);
 							piece.type = next;
 							// std::cout << "hold after: " << pieceIndex << "\n";
 
@@ -1556,38 +1535,10 @@ int main()
 				}
 			} 
 			
-			//piece.type = static_cast<pieceType>(distr(gen));
-
-			//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
-			// std::cout << "placed before: " << pieceIndex << "\n";
-			pieceType next = piece.requestPiece(pieceIndex, bag1, bag2, firstBag, secondBag, gen);
+			pieceType next = piece.requestPiece(pieceIndex, bag, piecesQueue, gen);
 
 			piece.type = next;
-			// std::cout << "placed after: " << pieceIndex << "\n";
-			//if not at end of bag, grab piece and increment index
-			// if (pieceIndex < 7) {
-			// 	if (firstBag) {
-			// 		piece.type = bag1.at(pieceIndex++);
-			// 	}
-			// 	else if (secondBag) {
-			// 		piece.type = bag2.at(pieceIndex++);
-			// 	}
-				
-			// }
-			// else {	//end of bag, reset index, and reshuffle bag
-			// 	pieceIndex = 0;
-			// 	if (firstBag) {
-			// 		shuffle(bag1.begin(), bag1.end(), gen);
-			// 		piece.type = bag1.at(pieceIndex++);
-			// 	}
-			// 	else if (secondBag) {
-			// 		shuffle(bag2.begin(), bag2.end(), gen);
-			// 		piece.type = bag2.at(pieceIndex++);
-			// 	}
 
-			// }
-
-			//swapPiece = true;
 			placed = false;
 			spawn = true;
 		}
@@ -1595,9 +1546,10 @@ int main()
 		//creation and swpaning of new piece
 		if (spawn) {
 			
-			cout<< "bag1: " << bag1.at(0) << " " << bag1.at(1) << " " << bag1.at(2) << " " << bag1.at(3) << " " << bag1.at(4) << " " << bag1.at(5) << " " << bag1.at(6) << "\n";
-			cout<< "bag2: " << bag2.at(0) << " " << bag2.at(1) << " " << bag2.at(2) << " " << bag2.at(3) << " " << bag2.at(4) << " " << bag2.at(5) << " " << bag2.at(6) << "\n";
+			cout<< "bag: " << bag.at(0) << " " << bag.at(1) << " " << bag.at(2) << " " << bag.at(3) << " " << bag.at(4) << " " << bag.at(5) << " " << bag.at(6) << "\n";
+			//cout<< "bag2: " << bag2.at(0) << " " << bag2.at(1) << " " << bag2.at(2) << " " << bag2.at(3) << " " << bag2.at(4) << " " << bag2.at(5) << " " << bag2.at(6) << "\n";
 			hold = true;
+			allowMovement = true;
 			spawn = false;
 			piece.rotation = 0;
 
@@ -1623,24 +1575,21 @@ int main()
 		window.draw(holdCell);
 		window.draw(nextPiecesCell);
 
-
-		//copy index and bag bools
-		previewIndex = pieceIndex;
-		previewFirst = firstBag;
-		previewSecond = secondBag;
-
-		//look at next 3 pieces
-		pieceType next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		//copy queue
+		queue<pieceType> copyQueue = piecesQueue;
+		
+		pieceType next = piece.peekPiece(copyQueue);
 		nextPieces[0].type = next;
-		next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		next = piece.peekPiece(copyQueue);
 		nextPieces[1].type = next;
-		next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		next = piece.peekPiece(copyQueue);
 		nextPieces[2].type = next;
 
 		nextPieces[0].drawPiece(nextPieces[0], 685, 200);
 		nextPieces[1].drawPiece(nextPieces[1], 685, 280);
 		nextPieces[2].drawPiece(nextPieces[2], 685, 375);
 		
+
 		//nextPieces[1]
 		//nextPieces[2]
 		
@@ -1692,7 +1641,7 @@ int main()
 		if (placing) {
 			placeTimer += dt;
 
-			if (placeTimer >= 0.1) {
+			if (placeTimer >= 0.5) {
 				placing = false;
 				placed = true;
 				
