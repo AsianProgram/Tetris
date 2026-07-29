@@ -90,6 +90,73 @@ class Piece {
 		sf::Vector2f newPos[4];
 		sf::RectangleShape pieces[4]; 
 
+		pieceType peekPiece(int &index, vector<pieceType> &b1, vector<pieceType> &b2, bool &first, bool &second) {
+			constexpr int bagSize = 7;
+			Piece p;
+
+			//if in first bag, grab the piece if index < bagSize, otherwise shuffle  
+			if (first) {
+				if (index >= bagSize) {
+					index = 0;
+					first = false;
+					second = true;
+				}
+
+				if (first) {
+					p.type = b1.at(index % bagSize);
+					++index;
+					return p.type;
+				}
+			}
+
+			if (second) {
+				if (index >= bagSize) {
+					index = 0;
+					first = true;
+					second = false;
+				}
+
+				p.type = b2.at(index % bagSize);
+				++index;
+			}
+			return p.type;
+		}
+
+		//function to get piece from which bag
+		pieceType requestPiece(int &index, vector<pieceType> &b1, vector<pieceType> &b2, bool &first, bool &second, std::mt19937 &g) {
+			constexpr int bagSize = 7;
+			Piece p;
+
+			
+			//if in first bag, grab the piece if index < bagSize, otherwise shuffle  
+			if (first) {
+				if (index >= bagSize) {
+					index = 0;
+					first = false;
+					second = true;
+					shuffle(b2.begin(), b2.end(), g);
+				}
+
+				if (first) {
+					p.type = b1.at(index % bagSize);
+					++index;
+					return p.type;
+				}
+			}
+
+			if (second) {
+				if (index >= bagSize) {
+					index = 0;
+					first = true;
+					second = false;
+					shuffle(b1.begin(), b1.end(), g);
+				}
+
+				p.type = b2.at(index % bagSize);
+				++index;
+			}
+			return p.type;
+		}
 	
 		void drawPiece(Piece &p, int startX, int startY) {
 			switch (p.type) {
@@ -260,19 +327,18 @@ int main()
 
 	Piece holdPiece;
 
-	vector<pieceType> bag = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	vector<pieceType> bag1 = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
+	vector<pieceType> bag2 = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
 	int pieceIndex = 0;
+
+	//pieceType nextPieces[3];
+	Piece nextPieces[3];
 
 	int spawnX = 385;
 	int spawnY = 205;
 
 	bool hold = true;
 	bool holdEmpty = true;
-	
-	//pieceType bag[7] = {SQUARE, LINE, TPIECE, LPIECE, JPIECE, ZPIECE, SPIECE};
-	
-
-	//std:queue<pieceType> selection;
 
 
 	bool valid = true;
@@ -280,8 +346,13 @@ int main()
 	bool placed = true;
 	bool spawn = true;
 
-	int hold1 = 0;
-	bool swapPiece = false;
+	bool firstBag = true;
+	bool secondBag = false;
+
+	bool previewFirst;
+	bool previewSecond;
+
+	int previewIndex;
 
 	r = board.getNumRows();
 	c = board.getNumColumns();
@@ -296,15 +367,24 @@ int main()
 	std::mt19937 gen(rd()); 
     //std::uniform_int_distribution<int> distr(0, 6); 
 
-	std::shuffle(bag.begin(), bag.end(), gen);
+	// std::shuffle(bag1.begin(), bag1.end(), gen);
+	// std::shuffle(bag2.begin(), bag2.end(), gen);
 
-	std::cout << bag.at(0) << " ";
-	std::cout << bag.at(1) << " ";
-	std::cout << bag.at(2) << " ";
-	std::cout << bag.at(3) << " ";
-	std::cout << bag.at(4) << " ";
-	std::cout << bag.at(5) << " ";
-	std::cout << bag.at(6) << "\n";
+	std::cout << bag1.at(0) << " ";
+	std::cout << bag1.at(1) << " ";
+	std::cout << bag1.at(2) << " ";
+	std::cout << bag1.at(3) << " ";
+	std::cout << bag1.at(4) << " ";
+	std::cout << bag1.at(5) << " ";
+	std::cout << bag1.at(6) << "\n";
+
+	// std::cout << bag1.at(0) << " ";
+	// std::cout << bag1.at(1) << " ";
+	// std::cout << bag1.at(2) << " ";
+	// std::cout << bag1.at(3) << " ";
+	// std::cout << bag1.at(4) << " ";
+	// std::cout << bag1.at(5) << " ";
+	// std::cout << bag1.at(6) << "\n";
 
 	sf::RenderWindow window( sf::VideoMode( { 960, 1080 } ), "Tetris!" );
 
@@ -325,7 +405,7 @@ int main()
 	holdCell.setOutlineThickness(2.f);
 	holdCell.setPosition(sf::Vector2f(35,200));
 
-	nextPiecesCell.setSize(sf::Vector2f(140,210));
+	nextPiecesCell.setSize(sf::Vector2f(140,260));
 	nextPiecesCell.setFillColor(sf::Color::Transparent);
 	nextPiecesCell.setOutlineColor(sf::Color::White);
 	nextPiecesCell.setOutlineThickness(2.f);
@@ -1375,49 +1455,8 @@ int main()
 
 				}
 				if (keyPressed->code == sf::Keyboard::Key::C) {
-					// holdCount %= 2;
-					// holdCount++;
-					// if (holdCount == 1)
-
-					//if press c for first time, turn to 0, 
-					
-					//if hold is 1, hold the piece
-						//check if holdEmpty is 1
-							//if 1 hodl the piece and go to next piece
-							//if not empty, swap pieces
-
-					// if (holdEmpty) {
-					// 	holdEmpty = false;
-
-					// 	if (hold) {
-					// 		holdPiece = piece;
-					// 		holdPiece.drawPiece(holdPiece, 70, 205);
-					// 		pieceIndex++;
-
-					// 		if (pieceIndex < 7) {
-					// 			piece.type = bag.at(pieceIndex++);
-					// 		}
-					// 		else {	//end of bag, reset index, and reshuffle bag
-					// 			pieceIndex = 0;
-					// 			shuffle(bag.begin(), bag.end(), gen);
-
-					// 			// std::cout << bag.at(0) << " ";
-					// 			// std::cout << bag.at(1) << " ";
-					// 			// std::cout << bag.at(2) << " ";
-					// 			// std::cout << bag.at(3) << " ";
-					// 			// std::cout << bag.at(4) << " ";
-					// 			// std::cout << bag.at(5) << " ";
-					// 			// std::cout << bag.at(6) << "\n";
-					// 			piece.type = bag.at(pieceIndex++);
-					// 		}
-							
-					// 		piece.drawPiece(piece, 385, 205);
-					// 	}
-					// }
-					// else {
-
-					// }
-
+					std::cout << "placing: " << placing <<"\n";
+					std::cout << "placed: " << placed <<"\n";
 					if (hold) {
 
 						if (holdEmpty) {
@@ -1426,17 +1465,14 @@ int main()
 
 							holdPiece = piece;
 							holdPiece.drawPiece(holdPiece, 70, 205);
-							pieceIndex++;
 
-							if (pieceIndex < 7) {
-								piece.type = bag.at(pieceIndex++);
-							}
-							else {	//end of bag, reset index, and reshuffle bag
-								pieceIndex = 0;
-								shuffle(bag.begin(), bag.end(), gen);
-								piece.type = bag.at(pieceIndex++);
-							}
+							//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
+							// std::cout << "hold before: " << pieceIndex << "\n";
+							pieceType next = piece.requestPiece(pieceIndex, bag1, bag2, firstBag, secondBag, gen);
+							piece.type = next;
+							// std::cout << "hold after: " << pieceIndex << "\n";
 
+							piece.rotation = 0;
 							piece.drawPiece(piece, 385, 205);
 							//placed = true;
 
@@ -1494,32 +1530,11 @@ int main()
 		fallTimer += dt;
 
 		window.clear();
-		//window.draw(player);
-		//window.draw( shape );
-		//cell.setPosition(sf::Vector2f(480,540));
-		
-		// if (!swapPiece) {
 
-		// 	if (!hold) {
 
-		// 	}
-		// }
-
-		//if can't hold piece, check if u can swap or replace
-		// if (!hold) {
-		// 	if (swapPiece) {	//if swapping piece
-
-		// 	}
-		// 	else {	//if replacing
-		// 		piece.type = bag.at(pieceIndex++);
-		// 		piece.rotation = 0;
-
-		// 		piece.drawPiece(piece, 385, 205);
-		// 	}
-		// }
 		//when piece is placed, generate a new piece type
 		while (placed) {	
-			
+			std::cout << "pieceIndex: " << pieceIndex << "\n";
 			int lastidx = 19;
 			int nextidx = 19;
 
@@ -1543,23 +1558,34 @@ int main()
 			
 			//piece.type = static_cast<pieceType>(distr(gen));
 
-			//if not at end of bag, grab piece and increment index
-			if (pieceIndex < 7) {
-				piece.type = bag.at(pieceIndex++);
-			}
-			else {	//end of bag, reset index, and reshuffle bag
-				pieceIndex = 0;
-				shuffle(bag.begin(), bag.end(), gen);
+			//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
+			// std::cout << "placed before: " << pieceIndex << "\n";
+			pieceType next = piece.requestPiece(pieceIndex, bag1, bag2, firstBag, secondBag, gen);
 
-				std::cout << bag.at(0) << " ";
-				std::cout << bag.at(1) << " ";
-				std::cout << bag.at(2) << " ";
-				std::cout << bag.at(3) << " ";
-				std::cout << bag.at(4) << " ";
-				std::cout << bag.at(5) << " ";
-				std::cout << bag.at(6) << "\n";
-				piece.type = bag.at(pieceIndex++);
-			}
+			piece.type = next;
+			// std::cout << "placed after: " << pieceIndex << "\n";
+			//if not at end of bag, grab piece and increment index
+			// if (pieceIndex < 7) {
+			// 	if (firstBag) {
+			// 		piece.type = bag1.at(pieceIndex++);
+			// 	}
+			// 	else if (secondBag) {
+			// 		piece.type = bag2.at(pieceIndex++);
+			// 	}
+				
+			// }
+			// else {	//end of bag, reset index, and reshuffle bag
+			// 	pieceIndex = 0;
+			// 	if (firstBag) {
+			// 		shuffle(bag1.begin(), bag1.end(), gen);
+			// 		piece.type = bag1.at(pieceIndex++);
+			// 	}
+			// 	else if (secondBag) {
+			// 		shuffle(bag2.begin(), bag2.end(), gen);
+			// 		piece.type = bag2.at(pieceIndex++);
+			// 	}
+
+			// }
 
 			//swapPiece = true;
 			placed = false;
@@ -1568,7 +1594,9 @@ int main()
 
 		//creation and swpaning of new piece
 		if (spawn) {
-
+			
+			cout<< "bag1: " << bag1.at(0) << " " << bag1.at(1) << " " << bag1.at(2) << " " << bag1.at(3) << " " << bag1.at(4) << " " << bag1.at(5) << " " << bag1.at(6) << "\n";
+			cout<< "bag2: " << bag2.at(0) << " " << bag2.at(1) << " " << bag2.at(2) << " " << bag2.at(3) << " " << bag2.at(4) << " " << bag2.at(5) << " " << bag2.at(6) << "\n";
 			hold = true;
 			spawn = false;
 			piece.rotation = 0;
@@ -1596,7 +1624,26 @@ int main()
 		window.draw(nextPiecesCell);
 
 
+		//copy index and bag bools
+		previewIndex = pieceIndex;
+		previewFirst = firstBag;
+		previewSecond = secondBag;
 
+		//look at next 3 pieces
+		pieceType next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		nextPieces[0].type = next;
+		next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		nextPieces[1].type = next;
+		next = piece.peekPiece(previewIndex, bag1, bag2, previewFirst, previewSecond);
+		nextPieces[2].type = next;
+
+		nextPieces[0].drawPiece(nextPieces[0], 685, 200);
+		nextPieces[1].drawPiece(nextPieces[1], 685, 280);
+		nextPieces[2].drawPiece(nextPieces[2], 685, 375);
+		
+		//nextPieces[1]
+		//nextPieces[2]
+		
 
 
 		//x borders 245-560
@@ -1638,8 +1685,6 @@ int main()
 			else {
 				placing  = true;
 			}
-				
-
 			fallTimer = 0;
 		}
 
@@ -1669,6 +1714,10 @@ int main()
 
 		for (int i = 0; i < 4; i++) {
 			window.draw(holdPiece.pieces[i]);
+			
+			window.draw(nextPieces[0].pieces[i]);
+			window.draw(nextPieces[1].pieces[i]);
+			window.draw(nextPieces[2].pieces[i]);
 		} 
 		for (int i = 0; i < 4; i++) {
 			window.draw(piece.pieces[i]);
@@ -1682,16 +1731,6 @@ int main()
 		// std::cout << "valid: (" << valid << ")\n";
 		// std::cout << "placing: (" << placing << ")\n";
 		// std::cout << "placed: (" << placed << ")\n";
-		
-		// std::cout << bag.at(0) << " ";
-		// std::cout << bag.at(1) << " ";
-		// std::cout << bag.at(2) << " ";
-		// std::cout << bag.at(3) << " ";
-		// std::cout << bag.at(4) << " ";
-		// std::cout << bag.at(5) << " ";
-		// std::cout << bag.at(6) << "\n";
-
-		//std::cout << "piece selected: " << bag.at(pieceIndex) << "\n";
 		
 		window.display();
 	}
