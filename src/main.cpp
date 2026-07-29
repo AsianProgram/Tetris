@@ -1434,57 +1434,60 @@ int main()
 
 				}
 				if (keyPressed->code == sf::Keyboard::Key::C) {
-					std::cout << "placing: " << placing <<"\n";
-					std::cout << "placed: " << placed <<"\n";
-					if (hold) {
+					// std::cout << "placing: " << placing <<"\n";
+					// std::cout << "placed: " << placed <<"\n";
+					if (allowMovement) {
+						if (hold) {
 
-						if (holdEmpty) {
-							holdEmpty = false;
-							hold = false;
+							if (holdEmpty) {
+								holdEmpty = false;
+								hold = false;
 
-							holdPiece = piece;
-							holdPiece.drawPiece(holdPiece, 70, 205);
+								holdPiece = piece;
+								holdPiece.drawPiece(holdPiece, 70, 205);
 
-							//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
-							// std::cout << "hold before: " << pieceIndex << "\n";
-							pieceType next = piece.requestPiece(pieceIndex, bag, piecesQueue, gen);
-							piece.type = next;
-							// std::cout << "hold after: " << pieceIndex << "\n";
+								//std::cout << "first: " << firstBag << " second: " << secondBag << "\n";
+								// std::cout << "hold before: " << pieceIndex << "\n";
+								pieceType next = piece.requestPiece(pieceIndex, bag, piecesQueue, gen);
+								piece.type = next;
+								// std::cout << "hold after: " << pieceIndex << "\n";
 
-							piece.rotation = 0;
-							piece.drawPiece(piece, 385, 205);
-							//placed = true;
+								piece.rotation = 0;
+								piece.drawPiece(piece, 385, 205);
+								//placed = true;
 
-						}
-						else {
-							hold = false;
-
-							Piece temp = holdPiece;
-
-							holdPiece = piece;
-							holdPiece.drawPiece(holdPiece, 70, 205);
-
-							
-							piece.pieces[0] = temp.pieces[0];
-							piece.pieces[1] = temp.pieces[1];
-							piece.pieces[2] = temp.pieces[2];
-							piece.pieces[3] = temp.pieces[3];
-							piece.type = temp.type;
-							piece.rotation = 0;
-
-							if (piece.type != SPIECE) {
-								piece.anchor = piece.pos[2];
 							}
-							else if (piece.type == SPIECE) {
-								piece.anchor = piece.pos[3];
-							}
+							else {
+								hold = false;
 
-							// piece.anchor = temp.anchor;
-							// piece.type = temp.type;
-							piece.drawPiece(piece, 385, 205);
-							
+								Piece temp = holdPiece;
+
+								holdPiece = piece;
+								holdPiece.drawPiece(holdPiece, 70, 205);
+
+								
+								piece.pieces[0] = temp.pieces[0];
+								piece.pieces[1] = temp.pieces[1];
+								piece.pieces[2] = temp.pieces[2];
+								piece.pieces[3] = temp.pieces[3];
+								piece.type = temp.type;
+								piece.rotation = 0;
+
+								if (piece.type != SPIECE) {
+									piece.anchor = piece.pos[2];
+								}
+								else if (piece.type == SPIECE) {
+									piece.anchor = piece.pos[3];
+								}
+
+								// piece.anchor = temp.anchor;
+								// piece.type = temp.type;
+								piece.drawPiece(piece, 385, 205);
+								
+							}
 						}
 					}
+					
 				}
 
 
