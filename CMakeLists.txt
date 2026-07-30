@@ -14,6 +14,12 @@ FetchContent_MakeAvailable(SFML)
 
 add_executable(Tetris src/main.cpp)
 target_compile_features(Tetris PRIVATE cxx_std_17)
-target_link_libraries(Tetris PRIVATE SFML::Graphics)
+target_link_libraries(Tetris PRIVATE SFML::Graphics SFML::Audio)
+
+add_custom_command(TARGET Tetris POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/music
+        $<TARGET_FILE_DIR:Tetris>/music
+)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT main)

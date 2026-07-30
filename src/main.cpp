@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Event.hpp>
+#include <SFML/Audio.hpp>
 #include <random>
 #include <queue>
 #include <iostream>
@@ -365,6 +366,11 @@ int main()
 
 
 	sf::RenderWindow window( sf::VideoMode( { 960, 1080 } ), "Tetris!" );
+	
+	sf::Music music("music/tetoris.ogg");
+
+	music.setLooping(true);
+	music.play();
 
 
 	sf::RectangleShape cell;
